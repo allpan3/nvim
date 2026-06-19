@@ -7,8 +7,8 @@ return {
       cli = {
         mux = {
           backend = 'zellij',
-          -- enabled = vim.env.ZELLIJ ~= nil,
-          enabled = true,
+          -- disable the mux integration if we're running inside zellij, since it causes issues with the CLI
+          enabled = vim.env.ZELLIJ == nil,
         },
       },
     },

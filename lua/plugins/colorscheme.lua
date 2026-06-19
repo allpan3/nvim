@@ -1,4 +1,4 @@
--- Change this string to swap your theme. 
+-- Change this string to swap your theme.
 -- 'oxocarbon', 'carbonfox', 'nightfox', 'dayfox'
 local active_theme = 'oxocarbon'
 
@@ -7,6 +7,7 @@ return {
     'EdenEast/nightfox.nvim',
     -- Make sure ALL themes have priority = 1000 so the active one loads first
     priority = 1000,
+    lazy = not active_theme:match 'fox',
     opts = {
       specs = {
         carbonfox = {
@@ -35,9 +36,11 @@ return {
       require('nightfox').setup(opts)
 
       -- Only activate the colorscheme if it belongs to the nightfox family
-      if active_theme:match("fox") then
+      if active_theme:match 'fox' then
         local status, _ = pcall(vim.cmd.colorscheme, active_theme)
-        if not status then vim.cmd.colorscheme('habamax') end
+        if not status then
+          vim.cmd.colorscheme 'habamax'
+        end
       end
     end,
   },
@@ -45,11 +48,14 @@ return {
   {
     'allpan3/oxocarbon.nvim',
     priority = 1000,
+    lazy = active_theme ~= 'oxocarbon',
     config = function()
       -- Only activate the colorscheme if it matches oxocarbon
       if active_theme == 'oxocarbon' then
         local status, _ = pcall(vim.cmd.colorscheme, active_theme)
-        if not status then vim.cmd.colorscheme('habamax') end
+        if not status then
+          vim.cmd.colorscheme 'habamax'
+        end
       end
     end,
   },

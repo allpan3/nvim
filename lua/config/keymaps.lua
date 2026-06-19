@@ -32,22 +32,23 @@ vim.keymap.set("n", "<S-enter>", "<cmd>put _<cr>") -- shift-enter to insert new 
 -- By default, pasting in visual mode puts the replaced text in default register. This writes to blackhole register instead
 -- both p and P work
 vim.keymap.set({ "v", "x" }, "p", '"_dP', { desc = "Replace with Paste" })
--- x behavior mimic d
+-- Don't copy deleted or changed text to any register, use blackhole register
 vim.keymap.set({"n", "x"}, "d", '"_d', { remap = false })
 vim.keymap.set({"n", "x"}, "D", '"_D', { remap = false })
+vim.keymap.set({"n", "x"}, "<Del>", '"_x', { remap = false })
+vim.keymap.set({"n", "x"}, "c", '"_c', { remap = false })
+vim.keymap.set({"n", "x"}, "C", '"_C', { remap = false })
+-- x used as cut, behavior mimic the original d
 vim.keymap.set({"n", "x"}, "x", "d", { remap = false })
 vim.keymap.set("n", "xx", "dd", { remap = false })
 vim.keymap.set({"n", "x"}, "X", "D", { remap = false })
-vim.keymap.set({"n", "x"}, "<Del>", '"_x', { remap = false })
-
--- Disable default 's' (substitute) so it acts purely as a prefix
-vim.keymap.set({'n', 'v'}, 's', '<Nop>', { desc = 'Surround prefix' })
 
 -- Indentation
-vim.keymap.set('n', '<Tab>', '>>', { desc = 'Indent line', silent = true })
-vim.keymap.set('n', '<S-Tab>', '<<', { desc = 'Unindent line', silent = true })
-vim.keymap.set('v', '<S-Tab>', '<gv', { desc = 'Unindent block', silent = true })
-vim.keymap.set('v', '<Tab>', '>gv', { desc = 'Indent block', silent = true })
+-- This conflicts with sidekick's completion, commenting out for now
+-- vim.keymap.set('n', '<Tab>', '>>', { desc = 'Indent line', silent = true })
+-- vim.keymap.set('n', '<S-Tab>', '<<', { desc = 'Unindent line', silent = true })
+-- vim.keymap.set('v', '<S-Tab>', '<gv', { desc = 'Unindent block', silent = true })
+-- vim.keymap.set('v', '<Tab>', '>gv', { desc = 'Indent block', silent = true })
 -- <tab> and ctrl-i are distinguished if both are unmapped or both are mapped. So here we map ctrl-i to itself.
 vim.keymap.set('n', '<C-i>', '<C-i>', { desc = 'Jump forward (separate from Tab)' })
 
@@ -65,28 +66,32 @@ vim.keymap.set({ "n", "v", "x", "o" }, "gh", "^", { desc = "Goto Beginning of In
 -- using g_ excludes the new line char, better consistency
 vim.keymap.set({ "n", "v", "x", "o" }, "gl", "g_", { desc = "Goto End of Line" })
 
-
 -- Window management
 vim.keymap.set("n", "<leader>\\", "<C-w>v", { desc = "Split Window Right" })
 vim.keymap.set("n", "<leader>-", "<C-w>s", { desc = "Split Window Below" })
 vim.keymap.set("n", "<leader>wd", "<C-w>c", { desc = "Delete Window" })
 vim.keymap.set("n", "<leader>wb", "<C-w>s", { desc = "Split Window Below" })
+vim.keymap.set("n", "<leader>wv", "<C-w>v", { desc = "Split Window Right" })
 vim.keymap.set("n", "<leader>wn", "<C-w>w", { desc = "Cycle Through Windows" })
 vim.keymap.set("n", "<leader>wth", "<C-w>t<C-w>K", { desc = "Change Vertical to Horizontal" })
 vim.keymap.set("n", "<leader>wtv", "<C-w>t<C-w>H", { desc = "Change Horizontal to Vertical" })
 vim.keymap.set("n", "<leader>`", "<cmd>wincmd p<CR>", { desc = "Switch to Other Window" })
--- Move to window using the <ctrl> hjkl keys
-vim.keymap.set('n', '<C-h>', '<C-w>h', { desc = 'Go to Left Window' })
-vim.keymap.set('n', '<C-j>', '<C-w>j', { desc = 'Go to Lower Window' })
-vim.keymap.set('n', '<C-k>', '<C-w>k', { desc = 'Go to Upper Window' })
-vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Go to Right Window' })
+-- Move to Neovim windows, falling through to Zellij panes when there is no window in that direction.
+vim.keymap.set({ 'n', 't' }, '<C-h>', '<cmd>ZellijNavigateLeft<cr>', { desc = 'Go to Left Window', silent = true })
+vim.keymap.set({ 'n', 't' }, '<C-j>', '<cmd>ZellijNavigateDown<cr>', { desc = 'Go to Lower Window', silent = true })
+vim.keymap.set({ 'n', 't' }, '<C-k>', '<cmd>ZellijNavigateUp<cr>', { desc = 'Go to Upper Window', silent = true })
+vim.keymap.set({ 'n', 't' }, '<C-l>', '<cmd>ZellijNavigateRight<cr>', { desc = 'Go to Right Window', silent = true })
 
 -- Buffer management
 vim.keymap.set("n", "<leader><tab>", "<cmd>e #<cr>", { desc = "Switch to Other Buffer" })
+vim.keymap.set("n", "<leader>bd", function() Snacks.bufdelete() end, { desc = "Delete Buffer" })
+vim.keymap.set("n", "<leader>bD", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
+-- vim.keymap.set("n", "<leader>bo", function() Snacks.bufdelete.other() end, { desc = "Delete Other Buffers" })
 
--- Save File
+-- Quite and save
 vim.keymap.set({ "n", "x", "s" }, "<leader>fs", "<cmd>w<CR>", { desc = "Save File" })
 vim.keymap.set({ "n", "x", "s" }, "<leader>fS", ":w ", { desc = "Save as" })
+vim.keymap.set("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit All" })
 vim.keymap.set("n", "<leader>qw", "<cmd>wq<cr>", { desc = "Save and Quit" })
 
 -- Copy current file path
@@ -95,6 +100,13 @@ vim.keymap.set("n", "<leader>fe", ":edit ", { desc = "Open Path" }) -- open file
 
 -- Lazy
 vim.keymap.set("n", "<leader>l", "<cmd>Lazy<cr>", { desc = "Lazy" })
+
+-- UI
+vim.keymap.set('n', '<leader>ci', vim.show_pos, { desc = 'Inspect Pos' })
+vim.keymap.set('n', '<leader>cI', function()
+  vim.treesitter.inspect_tree()
+  vim.api.nvim_input('I')
+end, { desc = 'Inspect Tree' })
 
 -- Git
 -- This shows all (up to a limit) history of the line
@@ -153,8 +165,8 @@ vim.keymap.set('i', ';', ';<c-g>u')
 vim.keymap.set('x', '<', '<gv')
 vim.keymap.set('x', '>', '>gv')
 
--- Diagnostic keymaps
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+--keywordprg
+vim.keymap.set("n", "<leader>K", "<cmd>norm! K<cr>", { desc = "Keywordprg" })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -169,3 +181,22 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
 -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
+
+-- diagnostic
+local diagnostic_goto = function(next, severity)
+  return function()
+    vim.diagnostic.jump({
+      count = (next and 1 or -1) * vim.v.count1,
+      severity = severity and vim.diagnostic.severity[severity] or nil,
+      float = true,
+    })
+  end
+end
+vim.keymap.set("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Line Diagnostics" })
+vim.keymap.set('n', '<leader>xq', vim.diagnostic.setloclist, { desc = 'Diagnostic [Q]uickfix list' })
+vim.keymap.set("n", "]d", diagnostic_goto(true), { desc = "Next Diagnostic" })
+vim.keymap.set("n", "[d", diagnostic_goto(false), { desc = "Prev Diagnostic" })
+vim.keymap.set("n", "]e", diagnostic_goto(true, "ERROR"), { desc = "Next Error" })
+vim.keymap.set("n", "[e", diagnostic_goto(false, "ERROR"), { desc = "Prev Error" })
+vim.keymap.set("n", "]w", diagnostic_goto(true, "WARN"), { desc = "Next Warning" })
+vim.keymap.set("n", "[w", diagnostic_goto(false, "WARN"), { desc = "Prev Warning" })

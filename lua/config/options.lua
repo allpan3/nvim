@@ -27,7 +27,7 @@ vim.opt.autoindent = true -- copy indent from current line when starting a new o
 
 -- editing
 vim.opt.conceallevel = 2 -- so that `` is visible in markdown files
--- vim.opt.swapfile = false -- creates a swapfile
+vim.opt.swapfile = false -- swap creation happens before bigfile autocmds and is slow on huge files
 vim.o.expandtab = true
 
 -- mouse
@@ -43,10 +43,15 @@ vim.o.whichwrap = '<,>,[,]'
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
+local is_ssh = vim.env.SSH_TTY or vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION
+
+if is_ssh then
+  -- Force OSC52 over SSH so regular yanks can reach the local terminal clipboard.
+  vim.g.clipboard = 'osc52'
+end
+
 vim.schedule(function()
-  -- only set clipboard if not in ssh, to make sure the OSC 52
-  -- integration works automatically. Requires Neovim >= 0.10.0
-  vim.o.clipboard = vim.env.SSH_TTY and '' or 'unnamedplus' -- Sync with system clipboard
+  vim.o.clipboard = 'unnamedplus'
 end)
 
 -- Enable break indent
@@ -102,6 +107,9 @@ vim.o.inccommand = 'split'
 -- Show which line your cursor is on
 vim.o.cursorline = true
 
+-- Hide command line by default
+ vim.o.cmdheight = 0
+
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.o.scrolloff = 4
 
@@ -115,5 +123,4 @@ vim.o.confirm = true
 -- but I haven't used any of those so far.
 -- Note: do not turn off ttimeout altogether. Some escape sequences are being typed at
 -- neovim startup by some plugins, which is also affectd by ttimeout. But setting len to 0 works so far.
--- vim.o.ttimeoutlen = 0
-
+vim.o.ttimeoutlen = 0
