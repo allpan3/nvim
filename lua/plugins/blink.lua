@@ -53,8 +53,12 @@ return {
         -- },
         ['<Tab>'] = {
           function(cmp)
+            if vim.lsp.inline_completion and vim.lsp.inline_completion.get() then
+              return true
+            end
+
             if cmp.is_visible() then
-              return cmp.select_and_accept()
+              return cmp.accept()
             end
 
             if require('sidekick').nes_jump_or_apply() then
@@ -66,9 +70,6 @@ return {
             end
           end,
           'snippet_forward',
-          function() -- if you are using Neovim's native inline completions
-            return vim.lsp.inline_completion and vim.lsp.inline_completion.get()
-          end,
           'fallback',
         },
       },
