@@ -109,6 +109,20 @@ vim.keymap.set('n', '<leader>cI', function()
   vim.api.nvim_input('I')
 end, { desc = 'Inspect Tree' })
 
+-- Diff View
+-- Opens the diffview workflow on demand
+local function open_diffview()
+  require('config.diffview').open()
+end
+
+-- Closes diffview through its workflow module
+local function close_diffview()
+  require('config.diffview').close()
+end
+
+vim.keymap.set('n', '<leader>gv', open_diffview, { desc = 'Diff View File' })
+vim.keymap.set('n', '<leader>gc', close_diffview, { desc = 'Close Diff View' })
+
 -- Git
 -- This shows all (up to a limit) history of the line
 -- git log -L flag doesn't support uncommitted lines. It only sees the single revision (in this case the default is HEAD)
