@@ -1,3 +1,4 @@
+-- Configures LSP servers, buffer-local LSP mappings, and inline completion
 return {
   {
     -- Main LSP Configuration
@@ -32,6 +33,7 @@ return {
     },
     config = function(_, opts)
       local highlights = require 'config.highlights'
+      local cmp = require 'config.cmp'
 
       highlights.set_lsp_inline_completion()
       vim.api.nvim_create_autocmd('ColorScheme', {
@@ -150,56 +152,16 @@ return {
 
           if client and vim.lsp.inline_completion and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlineCompletion, event.buf) then
             vim.lsp.inline_completion.enable(true, { bufnr = event.buf })
-
-            local inline_completion_remainder = ''
-
-            vim.api.nvim_create_autocmd('InsertLeave', {
-              buffer = event.buf,
-              callback = function()
-                inline_completion_remainder = ''
-              end,
-            })
-
-            local function split_inline_completion_line(text)
-              local partial = text:match '^[^\n]*\n?' or text
-              return partial, text:sub(#partial + 1)
-            end
-
-            local function accept_inline_completion_line()
-              if inline_completion_remainder ~= '' then
-                local partial
-                partial, inline_completion_remainder = split_inline_completion_line(inline_completion_remainder)
-                vim.api.nvim_paste(partial, false, 0)
-                return true
-              end
-
-              return vim.lsp.inline_completion.get {
-                on_accept = function(item)
-                  local insert_text = item.insert_text
-                  local text = type(insert_text) == 'string' and insert_text
-                    or type(insert_text) == 'table' and type(insert_text.value) == 'string' and insert_text.value
-                    or nil
-                  if not text or text == '' then
-                    return item
-                  end
-
-                  local partial
-                  partial, inline_completion_remainder = split_inline_completion_line(text)
-                  item.insert_text = partial
-                  return item
-                end,
-              }
-            end
+            cmp.setup_inline_completion(event.buf)
 
             -- map('<C-p>', function()
-            --   inline_completion_remainder = ''
             --   vim.lsp.inline_completion.select { count = -1 }
             -- end, 'Previous Inline Completion', 'i')
             -- map('<C-n>', function()
-            --   inline_completion_remainder = ''
             --   vim.lsp.inline_completion.select { count = 1 }
             -- end, 'Next Inline Completion', 'i')
-            map('<C-e>', accept_inline_completion_line, 'Accept Inline Completion Line', 'i')
+            map('<S-enter>', cmp.accept_full, 'Accept Inline Completion', 'i')
+            map('<C-e>', cmp.accept_line, 'Accept Inline Completion Line', 'i')
           end
 
           if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then

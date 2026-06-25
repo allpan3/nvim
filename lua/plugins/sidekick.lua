@@ -1,3 +1,25 @@
+-- Configures Sidekick.nvim integration and keymaps
+-- Applies the shared diff palette to Sidekick next-edit suggestion groups
+local function set_nes_highlights()
+  local palette = require('config.highlights').diff_palette()
+
+  vim.api.nvim_set_hl(0, 'SidekickDiffContext', { bg = palette.context_buf_bg })
+  vim.api.nvim_set_hl(0, 'SidekickDiffAdd', { fg = palette.change_buf_fg, bg = palette.change_buf_bg, bold = true })
+  vim.api.nvim_set_hl(0, 'SidekickDiffDelete', { fg = palette.delete_fg, bg = palette.delete_bg })
+end
+
+-- Keeps Sidekick next-edit suggestion highlights readable after setup
+local function setup_nes_highlights()
+  set_nes_highlights()
+  vim.api.nvim_create_autocmd('ColorScheme', {
+    desc = 'Keep Sidekick NES highlights aligned with diff palette',
+    group = vim.api.nvim_create_augroup('sidekick-nes-highlights', { clear = true }),
+    callback = function()
+      vim.schedule(set_nes_highlights)
+    end,
+  })
+end
+
 return {
   {
     'folke/sidekick.nvim',
@@ -12,6 +34,11 @@ return {
         },
       },
     },
+    -- Sets up Sidekick and its next-edit suggestion highlights
+    config = function(_, opts)
+      require('sidekick').setup(opts)
+      setup_nes_highlights()
+    end,
     keys = {
       {
         '<tab>',

@@ -1,3 +1,4 @@
+-- Configures blink.cmp completion sources, keymaps, and display behavior
 return {
   {
     'saghen/blink.cmp',
@@ -53,16 +54,12 @@ return {
         -- },
         ['<Tab>'] = {
           function(cmp)
-            if vim.lsp.inline_completion and vim.lsp.inline_completion.get() then
+            if require('config.cmp').accept_word() then
               return true
             end
 
             if cmp.is_visible() then
               return cmp.accept()
-            end
-
-            if require('sidekick').nes_jump_or_apply() then
-              return true
             end
 
             if cmp.snippet_active() then
