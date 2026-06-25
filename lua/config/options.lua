@@ -26,6 +26,7 @@ vim.opt.shiftwidth = 4 -- number of spaces inserted for each indentation
 vim.opt.autoindent = true -- copy indent from current line when starting a new one
 
 -- editing
+vim.o.autoread = true -- reload unchanged files after checktime
 vim.opt.conceallevel = 2 -- so that `` is visible in markdown files
 vim.opt.swapfile = false -- swap creation happens before bigfile autocmds and is slow on huge files
 vim.o.expandtab = true

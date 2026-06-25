@@ -40,6 +40,40 @@ vim.api.nvim_create_autocmd('BufLeave', {
   end,
 })
 
+-- Checks whether file buffers changed outside Neovim
+local function check_external_file_changes(buf)
+  if vim.fn.getcmdwintype() ~= '' then
+    return
+  end
+
+  if buf then
+    if not vim.api.nvim_buf_is_valid(buf) or vim.bo[buf].buftype ~= '' or vim.api.nvim_buf_get_name(buf) == '' then
+      return
+    end
+
+    vim.cmd('checktime ' .. buf)
+    return
+  end
+
+  vim.cmd.checktime()
+end
+
+vim.api.nvim_create_autocmd('FocusGained', {
+  desc = 'Check all buffers for external file changes',
+  group = vim.api.nvim_create_augroup('autoread-checktime', { clear = true }),
+  callback = function()
+    check_external_file_changes()
+  end,
+})
+
+vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
+  desc = 'Check current buffer for external file changes',
+  group = vim.api.nvim_create_augroup('autoread-current-buffer', { clear = true }),
+  callback = function(event)
+    check_external_file_changes(event.buf)
+  end,
+})
+
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.hl.on_yank()`
