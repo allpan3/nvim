@@ -91,6 +91,7 @@ vim.keymap.set("n", "<leader>bD", "<cmd>:bd<cr>", { desc = "Delete Buffer and Wi
 -- Quite and save
 vim.keymap.set({ "n", "x", "s" }, "<leader>fs", "<cmd>w<CR>", { desc = "Save File" })
 vim.keymap.set({ "n", "x", "s" }, "<leader>fS", ":w ", { desc = "Save as" })
+vim.keymap.set("n", "<leader>fn", function() vim.cmd("ene | startinsert") end, { desc = "New File" })
 vim.keymap.set("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit All" })
 vim.keymap.set("n", "<leader>qw", "<cmd>wq<cr>", { desc = "Save and Quit" })
 
@@ -113,18 +114,21 @@ end, { desc = 'Inspect Tree' })
 -- git log -L flag doesn't support uncommitted lines. It only sees the single revision (in this case the default is HEAD)
 -- So this command is only reliable in unchanged files
 -- NOTE: very hard to use this view
-vim.keymap.set("n", "<leader>gB", function()
-	Snacks.git.blame_line({ count = 10 })
-end, { desc = "Blame Line History" })
+vim.keymap.set('n', '<leader>gB', function() Snacks.git.blame_line { count = 10 } end, { desc = 'Blame Line History' })
 -- Open git remote repo
-vim.keymap.set({ "n", "x" }, "<leader>gH", function()
-	Snacks.gitbrowse()
-end, { desc = "Open Remote Repo" })
-vim.keymap.set({"n", "x" }, "<leader>gY", function()
-  Snacks.gitbrowse({ open = function(url) vim.fn.setreg("+", url) end, notify = false })
-end, { desc = "Copy Repo URL" })
-if vim.fn.executable("lazygit") == 1 then
-  vim.keymap.set("n", "<leader>gg", function() Snacks.lazygit() end, { desc = "Lazygit" })
+vim.keymap.set({ 'n', 'x' }, '<leader>gH', function() Snacks.gitbrowse() end, { desc = 'Open Remote Repo' })
+vim.keymap.set({ 'n', 'x' }, '<leader>gY', function()
+  Snacks.gitbrowse {
+    open = function(url)
+      vim.fn.setreg('+', url)
+    end,
+    notify = false,
+  }
+end, { desc = 'Copy Repo URL' })
+if vim.fn.executable('lazygit') == 1 then
+  vim.keymap.set('n', '<leader>gg', function()
+    Snacks.lazygit()
+  end, { desc = 'Lazygit' })
 end
 
 -- https://github.com/mhinz/vim-galore#saner-behavior-of-n-and-n
