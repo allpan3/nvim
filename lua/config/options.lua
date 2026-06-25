@@ -22,7 +22,7 @@ vim.o.number = true
 vim.opt.numberwidth = 4 -- minimal number of columns to use for the line number {default 4}
 
 -- tabs & indentation
-vim.opt.shiftwidth = 4 -- number of spaces inserted for each indentation
+vim.opt.shiftwidth = 2 -- number of spaces inserted for each indentation
 vim.opt.autoindent = true -- copy indent from current line when starting a new one
 
 -- editing
