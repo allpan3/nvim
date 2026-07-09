@@ -2,9 +2,17 @@
 local M = {}
 
 local ns = vim.api.nvim_create_namespace 'config.cmp.inline_completion'
-local extmark_id = 1
 local states = {}
 local autocmd_group = vim.api.nvim_create_augroup('config-cmp-inline-completion', { clear = false })
+
+-- Clears retained inline completion preview for a buffer
+local function clear_preview(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+  if vim.api.nvim_buf_is_valid(bufnr) then
+    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+  end
+end
 
 -- Extracts the insertable text from a native inline completion item
 local function item_text(item)
@@ -18,16 +26,6 @@ local function item_text(item)
   end
 
   return nil
-end
-
--- Returns the index after the common prefix of two strings
-local function lcp(a, b)
-  local i = 1
-  while i <= #a and i <= #b and a:sub(i, i) == b:sub(i, i) do
-    i = i + 1
-  end
-
-  return i
 end
 
 -- Returns the byte offset of the cursor inside the inline insertion text
@@ -48,10 +46,7 @@ end
 local function clear(bufnr)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
   states[bufnr] = nil
-
-  if vim.api.nvim_buf_is_valid(bufnr) then
-    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-  end
+  clear_preview(bufnr)
 end
 
 -- Converts a native inline completion range into retained byte and LSP positions
@@ -134,50 +129,6 @@ local function current_state()
   end
 
   return state
-end
-
--- Draws retained inline completion text without waiting for an LSP refetch
-local function show_preview(state)
-  local bufnr = vim.api.nvim_get_current_buf()
-  local native_ns = vim.api.nvim_get_namespaces()['nvim.lsp.inline_completion']
-
-  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-  if native_ns then
-    vim.api.nvim_buf_clear_namespace(bufnr, native_ns, 0, -1)
-  end
-
-  local lines = {}
-  for line in vim.gsplit(state.text, '\n', { plain = true }) do
-    table.insert(lines, { { line, 'ComplHint' } })
-  end
-
-  if #lines == 0 then
-    return
-  end
-
-  local line_text = vim.api.nvim_buf_get_lines(bufnr, state.start_row, state.start_row + 1, false)[1]
-  if not line_text or #line_text < state.start_col then
-    clear(bufnr)
-    return
-  end
-
-  local skip = lcp(line_text:sub(state.start_col + 1), lines[1][1][1])
-  local cursor = vim.api.nvim_win_get_cursor(0)
-  local cursor_row = cursor[1] - 1
-  local cursor_col = cursor[2]
-  if cursor_row == state.start_row then
-    skip = math.max(skip, cursor_col - state.start_col + 1)
-  end
-
-  lines[1][1][1] = lines[1][1][1]:sub(skip)
-
-  vim.api.nvim_buf_set_extmark(bufnr, ns, state.start_row, state.start_col + skip - 1, {
-    id = extmark_id,
-    virt_text = lines[1],
-    virt_lines = { unpack(lines, 2) },
-    virt_text_pos = 'inline',
-    hl_mode = 'combine',
-  })
 end
 
 -- Executes a completion command after custom inline text insertion
@@ -264,7 +215,7 @@ local function update_state_after_accept(state, accepted_text)
     return
   end
 
-  show_preview(state)
+  clear_preview()
 end
 
 -- Creates retained state from a native inline completion item
