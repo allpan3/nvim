@@ -214,16 +214,13 @@ return {
           -- input window
           input = {
             keys = {
-              -- WARN: would prefer to use ctrl-i/h/l for toggling ignored, hidden, follow (link), but fzf doesn't seem to
-              --       support CSI u, and better to match fzf and snacks picker
               ['<a-c>'] = { 'toggle_cwd', mode = { 'n', 'i' } },
               ['<c-n>'] = { 'history_forward', mode = { 'i', 'n' } },
               ['<c-p>'] = { 'history_back', mode = { 'i', 'n' } },
-              -- a-h is used by zellij
-              ['<a-g>'] = { 'toggle_hidden', mode = { 'i', 'n' } },
-              ['<a-h>'] = false,
-              -- With zellij kitty keyboard protocol disabled, <c-/> is the same as <c-_> in neovim, which is reserved by undo
-              -- ["<c-/>"] = { "toggle_preview", mode = { "i", "n" } },
+              ['<c-i>'] = { 'toggle_ignored', mode = { 'i', 'n' } },
+              -- the default <a-h> is reserved for zellij
+              ['<c-h>'] = { 'toggle_hidden', mode = { 'i', 'n' } },
+              ['<c-/>'] = { 'toggle_preview', mode = { 'i', 'n' } },
               ['<c-t>'] = { 'trouble_open', mode = { 'n', 'i' } },
               -- Right now there's no action to directly toggle preview wrap, have to switch to preview window then <leader>uw
             },
@@ -232,11 +229,10 @@ return {
           -- INFO: once enter list or preview window, can use all normal mode keybings (including leader keys)
           list = {
             keys = {
-              -- ["<c-/>"] = "toggle_preview",
+              ['<c-/>'] = 'toggle_preview',
               ['<c-t>'] = 'trouble_open',
-              -- a-h is used by zellij
-              ['<a-g>'] = 'toggle_hidden',
-              ['<a-h>'] = false,
+              ['<c-i>'] = 'toggle_ignored',
+              ['<c-h>'] = 'toggle_hidden',
             },
             -- wo = {
             -- 	wrap = true,
@@ -245,7 +241,7 @@ return {
           -- preview window
           preview = {
             keys = {
-              -- ["<c-/>"] = "toggle_preview",
+              ['<c-/>'] = 'toggle_preview',
             },
           },
         },
