@@ -1,5 +1,133 @@
 -- Configures Snacks.nvim UI features, dashboard shortcuts, pickers, and utility toggles
+local utils = require('config.utils')
 local toggles = {}
+
+-- Formats a picker cwd label for the footer
+local function picker_cwd_footer(cwd)
+  return ' CWD: ' .. vim.fn.fnamemodify(cwd, ':~') .. ' '
+end
+
+-- Checks whether a layout widget contains a named picker window
+local function has_layout_win(widget, name)
+  if widget.win == name then
+    return true
+  end
+
+  for _, child in ipairs(widget) do
+    if has_layout_win(child, name) then
+      return true
+    end
+  end
+
+  return false
+end
+
+-- Finds a named picker window in a layout tree
+local function find_layout_win(widget, name)
+  if widget.win == name then
+    return widget
+  end
+
+  for _, child in ipairs(widget) do
+    local found = find_layout_win(child, name)
+    if found then
+      return found
+    end
+  end
+end
+
+-- Checks whether a layout widget has a visible border
+local function has_visible_border(widget)
+  return widget.border and widget.border ~= 'none' and widget.border ~= ''
+end
+
+-- Finds the layout box that should show the picker cwd footer
+local function picker_cwd_footer_box(widget)
+  if widget.box then
+    for _, child in ipairs(widget) do
+      local found = picker_cwd_footer_box(child)
+      if found then
+        return found
+      end
+    end
+
+    if has_layout_win(widget, 'input') and has_layout_win(widget, 'list') then
+      return widget
+    end
+  end
+end
+
+-- Sets the picker cwd footer on a layout box
+local function set_picker_cwd_footer_box(widget, cwd)
+  local box = picker_cwd_footer_box(widget)
+  if box and has_visible_border(box) then
+    box.footer = picker_cwd_footer(cwd)
+    box.footer_pos = 'left'
+    return
+  end
+
+  local list = find_layout_win(widget, 'list')
+  if list then
+    list.border = 'bottom'
+    list.footer = picker_cwd_footer(cwd)
+    list.footer_pos = 'left'
+  end
+end
+
+-- Updates the picker footer with its active cwd
+local function update_picker_cwd_footer(picker)
+  local box = picker_cwd_footer_box(picker.layout.opts.layout)
+  local win = box and has_visible_border(box) and picker.layout.box_wins[box.id]
+    or picker.list and picker.list.win
+  if not (win and win:valid()) then
+    return
+  end
+
+  local footer = picker_cwd_footer(picker:cwd())
+  win.opts.footer = footer
+  win.opts.footer_pos = 'left'
+  vim.api.nvim_win_set_config(win.win, { footer = footer, footer_pos = 'left' })
+end
+
+-- Runs an explorer action and refreshes the explorer cwd footer
+local function explorer_action(action)
+  return function(picker, item)
+    require('snacks.explorer.actions').actions[action](picker, item)
+    update_picker_cwd_footer(picker)
+  end
+end
+
+-- Updates picker footer on show and watches explorer cwd changes
+local function on_picker_show(picker)
+  update_picker_cwd_footer(picker)
+  if picker.opts.source ~= 'explorer' or picker._cwd_footer_dirchanged then
+    return
+  end
+
+  picker._cwd_footer_dirchanged = true
+  picker.list.win:on('DirChanged', function()
+    vim.schedule(function()
+      if not picker.closed then
+        update_picker_cwd_footer(picker)
+      end
+    end)
+  end)
+end
+
+-- Wraps a picker layout spec with a cwd footer
+local function with_picker_cwd_footer(layout_spec, cwd)
+  return function(source)
+    local layout = type(layout_spec) == 'function' and layout_spec(source) or layout_spec
+    layout = type(layout) == 'string' and { preset = layout } or vim.deepcopy(layout or {})
+    local layout_config = layout.config
+    layout.config = function(resolved)
+      resolved = layout_config and layout_config(resolved) or resolved
+      set_picker_cwd_footer_box(resolved.layout, cwd)
+      return resolved
+    end
+    return layout
+  end
+end
 
 -- Builds cached toggle callbacks for Snacks toggle providers
 local function toggle(id, create)
@@ -68,6 +196,10 @@ return {
       },
       picker = {
         enabled = true,
+        config = function(opts)
+          opts.layout = with_picker_cwd_footer(opts.layout, opts.cwd or vim.fn.getcwd())
+          return opts
+        end,
         sources = {
           files = { hidden = true },
           grep = { hidden = true },
@@ -84,6 +216,7 @@ return {
             keys = {
               -- WARN: would prefer to use ctrl-i/h/l for toggling ignored, hidden, follow (link), but fzf doesn't seem to
               --       support CSI u, and better to match fzf and snacks picker
+              ['<a-c>'] = { 'toggle_cwd', mode = { 'n', 'i' } },
               ['<c-n>'] = { 'history_forward', mode = { 'i', 'n' } },
               ['<c-p>'] = { 'history_back', mode = { 'i', 'n' } },
               -- a-h is used by zellij
@@ -116,6 +249,19 @@ return {
             },
           },
         },
+        actions = {
+          explorer_focus = explorer_action('explorer_focus'),
+          explorer_up = explorer_action('explorer_up'),
+          ---@param p snacks.Picker
+          toggle_cwd = function(p)
+            local picker_root = utils.session_root(p:cwd())
+            local current = vim.fs.normalize(p:cwd())
+            p:set_cwd(current == picker_root and utils.true_cwd() or picker_root)
+            p:find()
+            update_picker_cwd_footer(p)
+          end,
+        },
+        on_show = on_picker_show,
       },
     },
     -- stylua: ignore
