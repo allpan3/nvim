@@ -68,10 +68,10 @@ end
 local function set_buffer_keymaps(session)
   for _, buf in ipairs { session.left_buf, session.right_buf } do
     vim.api.nvim_buf_call(buf, function()
-      vim.keymap.set('n', 'go', function()
+      vim.keymap.set('n', 'do', function()
         run_diff_action(session, 'diffget')
       end, keymap_opts('Get Hunk from Other'))
-      vim.keymap.set('n', 'gp', function()
+      vim.keymap.set('n', 'dp', function()
         run_diff_action(session, 'diffput')
       end, keymap_opts('Put Hunk to Other'))
     end)
@@ -84,7 +84,7 @@ local function clear_buffer_keymaps(buf)
     return
   end
 
-  for _, lhs in ipairs { 'go', 'gp' } do
+  for _, lhs in ipairs { 'do', 'dp' } do
     pcall(vim.api.nvim_buf_del_keymap, buf, 'n', lhs)
   end
 end
