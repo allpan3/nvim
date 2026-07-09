@@ -105,7 +105,7 @@ vim.api.nvim_create_autocmd('VimResized', {
   end,
 })
 
--- Seamlessly move between Neovim and Zellij panes using the same keybindings.
+-- Runs a Zellij command when this Neovim instance is inside Zellij
 local function zellij(args)
   if not vim.env.ZELLIJ or vim.fn.executable('zellij') == 0 then
     return
@@ -114,6 +114,7 @@ local function zellij(args)
   vim.fn.jobstart(vim.list_extend({ 'zellij' }, args), { detach = true })
 end
 
+-- Moves inside Neovim first, then falls through to Zellij at the edge
 local function move_pane(direction, zellij_action)
   local vim_key = ({ left = 'h', down = 'j', up = 'k', right = 'l' })[direction]
 
@@ -131,23 +132,3 @@ vim.api.nvim_create_user_command('ZellijNavigateLeft', move_pane('left', 'move-f
 vim.api.nvim_create_user_command('ZellijNavigateDown', move_pane('down', 'move-focus'), {})
 vim.api.nvim_create_user_command('ZellijNavigateUp', move_pane('up', 'move-focus'), {})
 vim.api.nvim_create_user_command('ZellijNavigateRight', move_pane('right', 'move-focus-or-tab'), {})
-
-local function zellij_nvim_hook(action)
-  zellij({ 'pipe', '-n', 'nvim_hook', action })
-end
-
-local zellij_group = vim.api.nvim_create_augroup('zellij-nvim-hook', { clear = true })
-
-vim.api.nvim_create_autocmd('VimEnter', {
-  group = zellij_group,
-  callback = function()
-    zellij_nvim_hook('open')
-  end,
-})
-
-vim.api.nvim_create_autocmd('VimLeavePre', {
-  group = zellij_group,
-  callback = function()
-    zellij_nvim_hook('close')
-  end,
-})
