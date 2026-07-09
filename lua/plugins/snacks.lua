@@ -270,15 +270,18 @@ return {
       { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer", },
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
       { "<leader>nn", function() Snacks.picker.notifications() end, desc = 'Notification History' },
-      { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep" },
+      { "<leader>/", function() Snacks.picker.grep({ cwd = utils.session_root() }) end, desc = "Grep (root)" },
       { "<leader>*", function() Snacks.picker.grep_word() end, desc = "Grep Selection or Word", mode = { "n", "x" } },
       { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
       { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
 
       -- Picker
       -- files
-      { "<leader>ff", function() Snacks.picker.files() end, desc = "Files" },
-      { "<leader>fc", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Config File" },
+      { "<leader>ff", function() Snacks.picker.files({ cwd = utils.session_root() }) end, desc = "Files (root)" },
+      { "<leader>fF", function() Snacks.picker.files({ cwd = utils.buffer_dir() }) end, desc = "Files (cur buf dir)" },
+      { "<leader>fc", function() Snacks.picker.files({ cwd = utils.cwd() }) end, desc = "Files (cwd)" },
+      { "<leader>fC", function() utils.toggle_cwd_root() end, desc = "Toggle CWD Root" },
+      { "<leader>fv", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Nvim Config File" },
       { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Git Files" },
       { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
@@ -297,7 +300,8 @@ return {
       { '<leader>gd', function() Snacks.picker.git_diff() end, desc = 'Git Diff (Hunks)' },
 
       -- grep
-      { "<leader>sg", function() Snacks.picker.grep() end, desc = "Grep" },
+      { "<leader>sg", function() Snacks.picker.grep({ cwd = utils.cwd() }) end, desc = "Grep (cwd)" },
+      { "<leader>sG", function() Snacks.picker.grep({ cwd = utils.buffer_dir() }) end, desc = "Grep (cur buf dir)" },
       { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
       { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Open Buffers" },
       { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Visual Selection or Word", mode = { "n", "x" } },
