@@ -154,6 +154,11 @@ return {
       quickfile = { enabled = true },
       notifier = { enabled = true },
       profiler = { enabled = true },
+      zen = {
+        toggles = {
+          dim = false
+        }
+      },
       dashboard = {
         -- width = 100,
         preset = {
@@ -163,20 +168,20 @@ return {
             { icon = ' ', key = 'g', desc = 'Git Files', action = function() Snacks.picker.git_files() end },
             { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
             { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
-            -- { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
+            { icon = " ", key = "/", desc = "Grep", action = ":lua Snacks.dashboard.pick('live_grep')" },
             { icon = ' ', key = 'e', desc = 'Explorer', action = function() Snacks.explorer() end },
             { icon = ' ', key = 's', desc = 'Restore Session', section = 'session' },
             { icon = '󰒲 ', key = 'L', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
             { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
           },
           header = [[
-                                                                   
-      ████ ██████           █████      ██                    
-     ███████████             █████                            
-     █████████ ███████████████████ ███   ███████████  
-    █████████  ███    █████████████ █████ ██████████████  
-   █████████ ██████████ █████████ █████ █████ ████ █████  
- ███████████ ███    ███ █████████ █████ █████ ████ █████ 
+                                             
+      ████ ██████           █████      ██
+     ███████████             █████ 
+     █████████ ███████████████████ ███   ███████████
+    █████████  ███    █████████████ █████ ██████████████
+   █████████ ██████████ █████████ █████ █████ ████ █████
+ ███████████ ███    ███ █████████ █████ █████ ████ █████
 ██████  █████████████████████ ████ █████ █████ ████ ██████
 ]],
         },
@@ -349,15 +354,16 @@ return {
       { "<leader>uv", toggle("diagnostic_virtual_text", function() local virtual_text = vim.diagnostic.config().virtual_text return Snacks.toggle({ name = "Diagnostic Virtual Text", get = function() return vim.diagnostic.config().virtual_text ~= false end, set = function(state) vim.diagnostic.config({ virtual_text = state and virtual_text or false }) end }) end), desc = "Toggle Diagnostic Virtual Text" },
       { "<leader>uV", toggle("diagnostic_virtual_lines", function() local virtual_lines = vim.diagnostic.config().virtual_lines return Snacks.toggle({ name = "Diagnostic Virtual Lines", get = function() return vim.diagnostic.config().virtual_lines ~= false end, set = function(state) vim.diagnostic.config({ virtual_lines = state and (virtual_lines or true) or false }) end }) end), desc = "Toggle Diagnostic Virtual Lines" },
       { "<leader>uw", toggle("wrap", function() return Snacks.toggle.option("wrap", { name = "Wrap" }) end), desc = "Toggle Wrap" },
-      { "<leader>uz", toggle("zen", function() return Snacks.toggle.zen() end), desc = "Toggle Zen Mode" },
+      { "<leader>wz", toggle("zen", function() return Snacks.toggle.zen() end), desc = "Toggle Zen Mode" },
       { "<leader>wm", toggle("zoom", function() return Snacks.toggle.zoom() end), desc = "Toggle Zoom Mode" },
 
       -- LSP
       { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
+      { "gD", function() Snacks.picker.lsp_definitions({ confirm = 'edit_vsplit' }) end, desc = "Goto Definition" },
       { "gr", function() Snacks.picker.lsp_references() end, nowait = true, desc = "References" },
+      { 'gR', function() Snacks.picker.lsp_declarations() end, desc = 'Goto Declaration' },
       { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
       { "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "Goto Type Definition" },
-      { 'gD', function() Snacks.picker.lsp_declarations() end, desc = 'Goto Declaration' },
       { '<leader>ss', function() Snacks.picker.lsp_symbols() end, desc = 'LSP Symbols', },
       { '<leader>sS', function() Snacks.picker.lsp_workspace_symbols() end, desc = 'LSP Workspace Symbols', },
       { "gai", function() Snacks.picker.lsp_incoming_calls() end, desc = "C[a]lls Incoming" },
