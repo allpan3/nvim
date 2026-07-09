@@ -76,7 +76,7 @@ vim.keymap.set("n", "<leader>wn", "<C-w>w", { desc = "Cycle Through Windows" })
 vim.keymap.set("n", "<leader>wth", "<C-w>t<C-w>K", { desc = "Change Vertical to Horizontal" })
 vim.keymap.set("n", "<leader>wtv", "<C-w>t<C-w>H", { desc = "Change Horizontal to Vertical" })
 vim.keymap.set("n", "<leader>`", "<cmd>wincmd p<CR>", { desc = "Switch to Other Window" })
--- Move to Neovim windows, falling through to Zellij panes when there is no window in that direction.
+-- Move to Neovim windows, falling through to Zellij panes when there is no window in that direction
 vim.keymap.set({ 'n', 't' }, '<C-h>', '<cmd>ZellijNavigateLeft<cr>', { desc = 'Go to Left Window', silent = true })
 vim.keymap.set({ 'n', 't' }, '<C-j>', '<cmd>ZellijNavigateDown<cr>', { desc = 'Go to Lower Window', silent = true })
 vim.keymap.set({ 'n', 't' }, '<C-k>', '<cmd>ZellijNavigateUp<cr>', { desc = 'Go to Upper Window', silent = true })
