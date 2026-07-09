@@ -41,14 +41,29 @@ vim.o.showmode = false
 vim.o.whichwrap = '<,>,[,]'
 
 -- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
+-- Schedule after `UiEnter` because it can increase startup-time.
+-- Remove this option if you want your OS clipboard to remain independent.
+-- See `:help 'clipboard'`
 local is_ssh = vim.env.SSH_TTY or vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION
 
 if is_ssh then
-  -- Force OSC52 over SSH so regular yanks can reach the local terminal clipboard.
-  vim.g.clipboard = 'osc52'
+  -- Over SSH: allow yanks to reach the local terminal clipboard,
+  -- but avoid OSC52 paste queries because they can hang through ssh.
+  vim.g.clipboard = {
+    name = 'OSC 52',
+    copy = {
+      ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
+      ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+    },
+    paste = {
+      ['+'] = function()
+        return { vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('') }
+      end,
+      ['*'] = function()
+        return { vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('') }
+      end,
+    },
+  }
 end
 
 vim.schedule(function()
