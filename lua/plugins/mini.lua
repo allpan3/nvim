@@ -1,3 +1,4 @@
+-- Configures mini.nvim modules and their local keymaps, highlights, and integrations
 return {
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -250,48 +251,11 @@ return {
         which_key.add(ret, { notify = false })
       end
 
-      vim.api.nvim_create_autocmd('User', {
-        group = vim.api.nvim_create_augroup('MiniSurroundWhichKey', { clear = true }),
-        pattern = 'VeryLazy',
-        callback = function()
-          vim.schedule(function()
-            register_surround_which_key(MiniSurround.config)
-          end)
-        end,
-      })
+      vim.schedule(function()
+        register_surround_which_key(MiniSurround.config)
+      end)
 
-      -- Diff overlay. Keep signs, hunk actions, and hunk navigation owned by
-      -- gitsigns; mini.diff only tracks hunks so its overlay can be toggled.
-      local set_mini_diff_overlay_hl = function()
-        local normal_fg = vim.api.nvim_get_hl(0, { name = 'Normal' }).fg or (vim.o.background == 'light' and 0x24292f or 0xd0d0d0)
-        normal_fg = string.format('#%06x', normal_fg)
-
-        local palette = {
-          add = '#12352f',
-          change = '#352f5f',
-          change_buf = '#243f63',
-          context = '#202634',
-          context_buf = '#1b2a3a',
-          delete = '#3a1f2b',
-        }
-        if vim.o.background == 'light' then
-          palette = {
-            add = '#d8f5e1',
-            change = '#eadcff',
-            change_buf = '#dbeafe',
-            context = '#f1f5f9',
-            context_buf = '#e8f1fb',
-            delete = '#ffe0e6',
-          }
-        end
-
-        vim.api.nvim_set_hl(0, 'MiniDiffOverAdd', { fg = normal_fg, bg = palette.add })
-        vim.api.nvim_set_hl(0, 'MiniDiffOverChange', { fg = normal_fg, bg = palette.change })
-        vim.api.nvim_set_hl(0, 'MiniDiffOverChangeBuf', { fg = normal_fg, bg = palette.change_buf })
-        vim.api.nvim_set_hl(0, 'MiniDiffOverContext', { fg = normal_fg, bg = palette.context })
-        vim.api.nvim_set_hl(0, 'MiniDiffOverContextBuf', { fg = normal_fg, bg = palette.context_buf })
-        vim.api.nvim_set_hl(0, 'MiniDiffOverDelete', { fg = normal_fg, bg = palette.delete })
-      end
+      local highlights = require 'config.highlights'
 
       require('mini.diff').setup {
         options = {
@@ -307,11 +271,13 @@ return {
           goto_last = '',
         },
       }
-      set_mini_diff_overlay_hl()
+      highlights.set_mini_diff_overlay()
 
       vim.api.nvim_create_autocmd('ColorScheme', {
         group = vim.api.nvim_create_augroup('MiniDiffOverlayHighlights', { clear = true }),
-        callback = set_mini_diff_overlay_hl,
+        callback = function()
+          vim.schedule(highlights.set_mini_diff_overlay)
+        end,
       })
 
       vim.keymap.set('n', '<leader>go', function()
