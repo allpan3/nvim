@@ -203,16 +203,6 @@ return {
             { pretty_path, padding = { left = 1, right = 1 } },
           },
           lualine_x = {
-            {
-              function()
-                return vim.fn.fnamemodify(vim.fn.getcwd(), ':~')
-              end,
-              -- icon = 'cwd',
-              cond = function()
-                return vim.o.columns > 100
-              end,
-            },
-            -- 'encoding',
             -- 'fileformat',
             {
               'filetype',
