@@ -8,6 +8,18 @@ local diff_window_groups = {
   DiffText = 'ConfigDiffText',
 }
 
+local directional_diff_window_groups = {
+  current = diff_window_groups,
+  reference = {
+    DiffAdd = 'ConfigDiffDelete',
+    DiffChange = 'ConfigDiffReferenceChange',
+    DiffDelete = 'ConfigDiffReferenceAddGap',
+    DiffText = 'ConfigDiffReferenceText',
+  },
+}
+
+local diff_role_var = 'config_diff_role'
+
 -- Returns the readable ghost text color for the active background mode
 local function completion_ghost_text_fg()
   return vim.o.background == 'light' and '#aab1bc' or '#575a60'
@@ -74,10 +86,10 @@ local function without_diff_window_highlights(value)
 end
 
 -- Adds native diff highlight remaps to one winhighlight value
-local function with_diff_window_highlights(value)
+local function with_diff_window_highlights(value, groups)
   local entries = { without_diff_window_highlights(value) }
 
-  for source, target in pairs(diff_window_groups) do
+  for source, target in pairs(groups) do
     table.insert(entries, source .. ':' .. target)
   end
 
@@ -86,11 +98,50 @@ local function with_diff_window_highlights(value)
   end, entries), ',')
 end
 
+-- Returns the explicit role assigned by the managed file comparison
+local function explicit_diff_role(win)
+  local ok, role = pcall(vim.api.nvim_win_get_var, win, diff_role_var)
+  if ok and directional_diff_window_groups[role] ~= nil then
+    return role
+  end
+end
+
+-- Infers current and reference roles for a two-way Gitsigns diff
+local function gitsigns_diff_role(win)
+  local tab = vim.api.nvim_win_get_tabpage(win)
+  local reference_win = nil
+
+  for _, peer in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
+    if vim.wo[peer].diff then
+      local name = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(peer))
+      if vim.startswith(name, 'gitsigns://') then
+        if reference_win ~= nil then
+          return
+        end
+        reference_win = peer
+      end
+    end
+  end
+
+  if reference_win == nil then
+    return
+  end
+
+  return win == reference_win and 'reference' or 'current'
+end
+
+-- Returns a directional role only for managed two-way comparisons
+local function diff_role(win)
+  return explicit_diff_role(win) or gitsigns_diff_role(win)
+end
+
 -- Applies or removes local diff highlights for one window
 local function refresh_diff_window(win)
   if vim.wo[win].diff then
-    vim.wo[win].winhighlight = with_diff_window_highlights(vim.wo[win].winhighlight)
+    local groups = directional_diff_window_groups[diff_role(win)] or diff_window_groups
+    vim.wo[win].winhighlight = with_diff_window_highlights(vim.wo[win].winhighlight, groups)
   else
+    pcall(vim.api.nvim_win_del_var, win, diff_role_var)
     vim.wo[win].winhighlight = without_diff_window_highlights(vim.wo[win].winhighlight)
   end
 end
@@ -124,6 +175,9 @@ function M.set_diff_windows()
   vim.api.nvim_set_hl(0, 'ConfigDiffChange', { bg = palette.context_buf_bg })
   vim.api.nvim_set_hl(0, 'ConfigDiffText', { fg = palette.change_buf_fg, bg = palette.change_buf_bg, bold = true })
   vim.api.nvim_set_hl(0, 'ConfigDiffDelete', { fg = palette.delete_fg, bg = palette.delete_bg })
+  vim.api.nvim_set_hl(0, 'ConfigDiffReferenceChange', { fg = palette.context_ref_fg, bg = palette.context_ref_bg })
+  vim.api.nvim_set_hl(0, 'ConfigDiffReferenceText', { fg = palette.change_ref_fg, bg = palette.change_ref_bg, bold = true })
+  vim.api.nvim_set_hl(0, 'ConfigDiffReferenceAddGap', { fg = palette.change_buf_fg, bg = palette.add_bg })
 end
 
 -- Keeps native diff windows readable without changing global Diff groups
