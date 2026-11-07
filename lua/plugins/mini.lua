@@ -260,6 +260,7 @@ return {
       require('mini.diff').setup {
         options = {
           algorithm = 'minimal',
+          linematch = 0, -- Keep changed blocks expanded
         },
         mappings = {
           apply = '',

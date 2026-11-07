@@ -354,8 +354,8 @@ return {
       { "<leader>uv", toggle("diagnostic_virtual_text", function() local virtual_text = vim.diagnostic.config().virtual_text return Snacks.toggle({ name = "Diagnostic Virtual Text", get = function() return vim.diagnostic.config().virtual_text ~= false end, set = function(state) vim.diagnostic.config({ virtual_text = state and virtual_text or false }) end }) end), desc = "Toggle Diagnostic Virtual Text" },
       { "<leader>uV", toggle("diagnostic_virtual_lines", function() local virtual_lines = vim.diagnostic.config().virtual_lines return Snacks.toggle({ name = "Diagnostic Virtual Lines", get = function() return vim.diagnostic.config().virtual_lines ~= false end, set = function(state) vim.diagnostic.config({ virtual_lines = state and (virtual_lines or true) or false }) end }) end), desc = "Toggle Diagnostic Virtual Lines" },
       { "<leader>uw", toggle("wrap", function() return Snacks.toggle.option("wrap", { name = "Wrap" }) end), desc = "Toggle Wrap" },
-      { "<leader>wz", toggle("zen", function() return Snacks.toggle.zen() end), desc = "Toggle Zen Mode" },
-      { "<leader>wm", toggle("zoom", function() return Snacks.toggle.zoom() end), desc = "Toggle Zoom Mode" },
+      { "<leader>z", toggle("zen", function() return Snacks.toggle.zen() end), desc = "Toggle Zen Mode" },
+      { "<leader>m", toggle("zoom", function() return Snacks.toggle.zoom() end), desc = "Toggle Zoom Mode" },
 
       -- LSP
       { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
