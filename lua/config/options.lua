@@ -47,8 +47,7 @@ vim.o.whichwrap = '<,>,[,]'
 local is_ssh = vim.env.SSH_TTY or vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION
 
 if is_ssh then
-  -- Over SSH: allow yanks to reach the local terminal clipboard,
-  -- but avoid OSC52 paste queries because they can hang through ssh.
+  -- Over SSH: use OSC 52 to copy to and paste from the terminal clipboard.
   vim.g.clipboard = {
     name = 'OSC 52',
     copy = {
@@ -56,12 +55,8 @@ if is_ssh then
       ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
     },
     paste = {
-      ['+'] = function()
-        return { vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('') }
-      end,
-      ['*'] = function()
-        return { vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('') }
-      end,
+      ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
+      ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
     },
   }
 end
